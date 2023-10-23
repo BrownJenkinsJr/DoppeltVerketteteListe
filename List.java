@@ -29,6 +29,7 @@ public class List<ContentType> {
 
     private ContentType contentObject;
     private ListNode next;
+    private ListNode previous;
 
     /**
      * Ein neues Objekt wird erschaffen. Der Verweis ist leer.
@@ -38,6 +39,7 @@ public class List<ContentType> {
     private ListNode(ContentType pContent) {
       contentObject = pContent;
       next = null;
+      previous = null;
     }
 
     /**
@@ -77,6 +79,13 @@ public class List<ContentType> {
       this.next = pNext;
     }
 
+    public ListNode getPreviousNode() {
+      return previous;
+    }
+
+    public void setPreviousNode(ListNode previous) {
+      this.previous = previous;
+    }
   }
 
   /* ----------- Ende der privaten inneren Klasse -------------- */
@@ -132,6 +141,10 @@ public class List<ContentType> {
     if (this.hasAccess()) {
       current = current.getNextNode();
     }
+  }
+
+  public void previous() {
+    current = !isEmpty() && hasAccess() && first != current ? current.previous : null;
   }
 
   /**
@@ -205,8 +218,9 @@ public class List<ContentType> {
         ListNode newNode = new ListNode(pContent); 
 
         if (current != first) { // Fall: Nicht an erster Stelle einfuegen.
-          ListNode previous = this.getPrevious(current);
+          ListNode previous = current.getPreviousNode();
           newNode.setNextNode(previous.getNextNode());
+          newNode.setPreviousNode(current);
           previous.setNextNode(newNode);
         } else { // Fall: An erster Stelle einfuegen.
           newNode.setNextNode(first);
@@ -246,7 +260,8 @@ public class List<ContentType> {
       } else { // Fall: An nicht-leere Liste anfuegen.
 
         // Neuen Knoten erstellen.
-        ListNode newNode = new ListNode(pContent); 
+        ListNode newNode = new ListNode(pContent);
+        newNode.setPreviousNode(last);
 
         last.setNextNode(newNode);
         last = newNode; // Letzten Knoten aktualisieren.
@@ -299,17 +314,21 @@ public class List<ContentType> {
 
       if (current == first) {
         first = first.getNextNode();
+        if (first != null)
+          first.setPreviousNode(null);
       } else {
-        ListNode previous = this.getPrevious(current);
+        ListNode previous = current.getPreviousNode();
         if (current == last) {
           last = previous;
         }
         previous.setNextNode(current.getNextNode());
+        current.getNextNode().setPreviousNode(previous);
       }
 
       ListNode temp = current.getNextNode();
       current.setContentObject(null);
       current.setNextNode(null);
+      current.setPreviousNode(null);
       current = temp;
 
       //Beim loeschen des letzten Elements last auf null setzen. 
@@ -330,16 +349,9 @@ public class List<ContentType> {
    *         pNode == null ist, pNode nicht in der Liste ist oder pNode der erste Knoten
    *         der Liste ist
    */
+  @Deprecated
   private ListNode getPrevious(ListNode pNode) {
-    if (pNode != null && pNode != first && !this.isEmpty()) {
-      ListNode temp = first;
-      while (temp != null && temp.getNextNode() != pNode) {
-        temp = temp.getNextNode();
-      }
-      return temp;
-    } else {
-      return null;
-    }
+    return pNode.getPreviousNode();
   }
   
 }
