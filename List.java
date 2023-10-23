@@ -1,7 +1,6 @@
-
-/**
+ /**
  * <p>
- * Materialien zu den zentralen NRW-Abiturpruefungen im Fach Informatik ab 2017.
+ * Materialien zu den zentralen NRW-Abiturpruefungen im Fach Informatik ab 2018
  * </p>
  * <p>
  * Generische Klasse List<ContentType>
@@ -19,26 +18,28 @@
  * kann vor dem aktuellen Objekt ein Listenobjekt eingefuegt werden.
  * </p>
  * 
- * @author Qualitaets- und UnterstuetzungsAgentur - Landesinstitut fuer Schule, Materialien zum schulinternen Lehrplan Informatik SII
- * @version Generisch_03 2014-03-01
+ * @author Qualitaets- und UnterstuetzungsAgentur - Landesinstitut fuer Schule
+ * @version Generisch_06 2015-10-25
  */
 public class List<ContentType> {
 
   /* --------- Anfang der privaten inneren Klasse -------------- */
 
-  public class ListNode {
+  private class ListNode {
 
     private ContentType contentObject;
     private ListNode next;
+    private ListNode previous;
 
     /**
      * Ein neues Objekt wird erschaffen. Der Verweis ist leer.
      * 
      * @param pContent das Inhaltsobjekt vom Typ ContentType
      */
-    public ListNode(ContentType pContent) {
+    private ListNode(ContentType pContent) {
       contentObject = pContent;
       next = null;
+      previous = null;
     }
 
     /**
@@ -75,9 +76,16 @@ public class List<ContentType> {
      * @param pNext der Nachfolger des Knotens
      */
     public void setNextNode(ListNode pNext) {
-      this.next = pNext;	
+      this.next = pNext;
     }
 
+    public ListNode getPreviousNode() {
+      return previous;
+    }
+
+    public void setPreviousNode(ListNode previous) {
+      this.previous = previous;
+    }
   }
 
   /* ----------- Ende der privaten inneren Klasse -------------- */
@@ -133,6 +141,10 @@ public class List<ContentType> {
     if (this.hasAccess()) {
       current = current.getNextNode();
     }
+  }
+
+  public void previous() {
+    current = !isEmpty() && hasAccess() && first != current ? current.previous : null;
   }
 
   /**
@@ -206,8 +218,9 @@ public class List<ContentType> {
         ListNode newNode = new ListNode(pContent); 
 
         if (current != first) { // Fall: Nicht an erster Stelle einfuegen.
-          ListNode previous = this.getPrevious(current);
+          ListNode previous = current.getPreviousNode();
           newNode.setNextNode(previous.getNextNode());
+          newNode.setPreviousNode(current);
           previous.setNextNode(newNode);
         } else { // Fall: An erster Stelle einfuegen.
           newNode.setNextNode(first);
@@ -247,7 +260,8 @@ public class List<ContentType> {
       } else { // Fall: An nicht-leere Liste anfuegen.
 
         // Neuen Knoten erstellen.
-        ListNode newNode = new ListNode(pContent); 
+        ListNode newNode = new ListNode(pContent);
+        newNode.setPreviousNode(last);
 
         last.setNextNode(newNode);
         last = newNode; // Letzten Knoten aktualisieren.
@@ -257,7 +271,8 @@ public class List<ContentType> {
   }
 
   /**
-   * Falls pList null oder eine leere Liste ist, geschieht nichts.<br />
+   * Falls es sich bei der Liste und pList um dasselbe Objekt handelt,
+   * pList null oder eine leere Liste ist, geschieht nichts.<br />
    * Ansonsten wird die Liste pList an die aktuelle Liste angehaengt.
    * Anschliessend wird pList eine leere Liste. Das aktuelle Objekt bleibt
    * unveraendert. Insbesondere bleibt hasAccess identisch.
@@ -266,7 +281,8 @@ public class List<ContentType> {
    *            die am Ende anzuhaengende Liste vom Typ List<ContentType>
    */
   public void concat(List<ContentType> pList) {
-    if (pList != null && !pList.isEmpty()) { // Nichts tun, wenn pList leer oder nicht existent.
+    if (pList != this && pList != null && !pList.isEmpty()) { // Nichts tun,
+    // wenn pList und this identisch, pList leer oder nicht existent.
 
       if (this.isEmpty()) { // Fall: An leere Liste anfuegen.
         this.first = pList.first;
@@ -298,17 +314,21 @@ public class List<ContentType> {
 
       if (current == first) {
         first = first.getNextNode();
+        if (first != null)
+          first.setPreviousNode(null);
       } else {
-        ListNode previous = this.getPrevious(current);
+        ListNode previous = current.getPreviousNode();
         if (current == last) {
           last = previous;
         }
         previous.setNextNode(current.getNextNode());
+        current.getNextNode().setPreviousNode(previous);
       }
 
       ListNode temp = current.getNextNode();
       current.setContentObject(null);
       current.setNextNode(null);
+      current.setPreviousNode(null);
       current = temp;
 
       //Beim loeschen des letzten Elements last auf null setzen. 
@@ -329,16 +349,9 @@ public class List<ContentType> {
    *         pNode == null ist, pNode nicht in der Liste ist oder pNode der erste Knoten
    *         der Liste ist
    */
+  @Deprecated
   private ListNode getPrevious(ListNode pNode) {
-    if (pNode != null && pNode != first && !this.isEmpty()) {
-      ListNode temp = first;
-      while (temp != null && temp.getNextNode() != pNode) {
-        temp = temp.getNextNode();
-      }
-      return temp;
-    } else {
-      return null;
-    }
+    return pNode.getPreviousNode();
   }
   
 }
